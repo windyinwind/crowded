@@ -25,7 +25,9 @@
     "empty": "Empty",
     "fewPeople": "Few People",
     "moderate": "Moderate",
-    "full": "Full"
+    "full": "Full",
+    "allLines": "All Lines",
+    "liveFeeds": "Popular Station Live Feeds"
   },
   "liveFeed": {
     "title": "Live Station Feeds",

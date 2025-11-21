@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
+import { Link } from '@/i18n/routing';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import VideoAnalyzer from '@/components/VideoAnalyzer';
 
@@ -108,11 +109,11 @@ export default function CarriageStatusScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-slate-900 to-slate-800 p-6">
       <LanguageSwitcher />
-      <div className="w-full max-w-[1800px]">
+      <div className="w-full max-w-[1800px] relative">
         {/* Main Content - Grid Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Main Card */}
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden relative">
           {/* Header Section */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
             <div className="flex items-center justify-between">
@@ -285,6 +286,7 @@ export default function CarriageStatusScreen() {
               ))}
             </div>
           </div>
+
         </div>
 
           {/* Video Input Section */}
@@ -304,6 +306,48 @@ export default function CarriageStatusScreen() {
               autoStart={true}
             />
           </div>
+        </div>
+
+        {/* Navigation Links - Fixed Bottom Right */}
+        <div className="fixed bottom-8 right-8 flex items-center gap-4 z-50">
+          <Link
+            href="/lines"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
+            </svg>
+            {t('allLines')}
+          </Link>
+          <Link
+            href="/live-feed"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
+            </svg>
+            {t('liveFeeds')}
+          </Link>
         </div>
       </div>
     </div>

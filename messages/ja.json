@@ -25,7 +25,9 @@
     "empty": "空いています",
     "fewPeople": "少し混雑",
     "moderate": "混雑",
-    "full": "満員"
+    "full": "満員",
+    "allLines": "全路線",
+    "liveFeeds": "人気駅ライブフィード"
   },
   "liveFeed": {
     "title": "駅ライブフィード",
