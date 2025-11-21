@@ -9,9 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^3.0.56",
+    "@aws-sdk/client-bedrock-runtime": "^3.936.0",
+    "ai": "^5.0.98",
     "next": "16.0.3",
+    "next-intl": "^4.5.5",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "sambanova-ai-provider": "^1.2.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
