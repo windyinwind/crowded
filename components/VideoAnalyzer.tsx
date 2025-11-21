@@ -14,21 +14,23 @@ interface AnalysisResult {
 
 interface VideoAnalyzerProps {
   onAnalysis: (result: AnalysisResult) => void;
+  videoUrl?: string;
   intervalMs?: number;
   autoStart?: boolean;
 }
 
 export default function VideoAnalyzer({
   onAnalysis,
+  videoUrl,
   intervalMs = 5000,
   autoStart = false,
 }: VideoAnalyzerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(autoStart);
-  const [useWebcam, setUseWebcam] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const [hasVideo, setHasVideo] = useState(false);
+  const autoStartRef = useRef(autoStart);
 
   // Capture frame and convert to base64
   const captureFrame = (): string | null => {
@@ -52,88 +54,100 @@ export default function VideoAnalyzer({
   // Analyze current frame
   const analyzeCurrentFrame = async () => {
     try {
+      console.log('[VideoAnalyzer] Capturing frame for analysis...');
       const frameData = captureFrame();
-      if (!frameData) return;
-
-      const result = await analyzeImage(frameData);
-      onAnalysis(result);
-    } catch (error) {
-      console.error('Analysis error:', error);
-    }
-  };
-
-  // Start webcam
-  const startWebcam = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
+      if (!frameData) {
+        console.warn('[VideoAnalyzer] Failed to capture frame');
+        return;
       }
 
-      setStream(mediaStream);
-      setUseWebcam(true);
+      console.log('[VideoAnalyzer] Sending frame to AI for analysis...');
+      const result = await analyzeImage(frameData);
+      console.log('[VideoAnalyzer] *** Received analysis result:', result);
+      console.log('[VideoAnalyzer] *** Calling onAnalysis callback with result');
+      onAnalysis(result);
+      console.log('[VideoAnalyzer] *** onAnalysis callback completed');
     } catch (error) {
-      console.error('Error accessing webcam:', error);
-      alert('Could not access webcam. Please check permissions.');
+      console.error('[VideoAnalyzer] Analysis error:', error);
     }
   };
 
-  // Stop webcam
-  const stopWebcam = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setUseWebcam(false);
-  };
+  // Update autoStartRef when autoStart prop changes
+  useEffect(() => {
+    autoStartRef.current = autoStart;
+  }, [autoStart]);
 
-  // Handle video file upload
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // Load video when videoUrl changes
+  useEffect(() => {
+    const video = videoRef.current;
 
-    stopWebcam();
+    if (videoUrl && video) {
+      console.log('[VideoAnalyzer] Loading video:', videoUrl);
 
-    const url = URL.createObjectURL(file);
-    if (videoRef.current) {
-      videoRef.current.src = url;
-      videoRef.current.load();
-      videoRef.current.play();
+      // Reset state
+      setHasVideo(false);
+      setIsAnalyzing(false);
+
+      video.src = videoUrl;
+      video.load();
+
+      // Wait for video to start playing before starting analysis
+      const handlePlaying = () => {
+        console.log('[VideoAnalyzer] Video is now playing');
+        setHasVideo(true);
+
+        // Auto-start analysis if enabled
+        if (autoStartRef.current) {
+          console.log('[VideoAnalyzer] Auto-starting analysis');
+          setIsAnalyzing(true);
+        }
+      };
+
+      video.addEventListener('playing', handlePlaying, { once: true });
+
+      video.play().catch(error => {
+        console.error('Error playing video:', error);
+      });
+
+      // Cleanup function
+      return () => {
+        video.removeEventListener('playing', handlePlaying);
+      };
+    } else {
+      setHasVideo(false);
+      setIsAnalyzing(false);
     }
-  };
+  }, [videoUrl]);
 
   // Start/stop analysis
   useEffect(() => {
-    if (isAnalyzing) {
-      // Analyze immediately
-      analyzeCurrentFrame();
+    if (isAnalyzing && hasVideo) {
+      console.log('[VideoAnalyzer] Starting analysis with interval:', intervalMs);
+
+      // Wait a bit for video to start playing, then analyze immediately
+      const initialTimeout = setTimeout(() => {
+        analyzeCurrentFrame();
+      }, 1000);
 
       // Then set up interval
       intervalRef.current = setInterval(analyzeCurrentFrame, intervalMs);
+
+      return () => {
+        clearTimeout(initialTimeout);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isAnalyzing, intervalMs]);
+  }, [isAnalyzing, hasVideo, intervalMs]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopWebcam();
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
@@ -149,69 +163,54 @@ export default function VideoAnalyzer({
           className="w-full h-full object-contain"
           playsInline
           muted
+          loop
         />
         <canvas ref={canvasRef} className="hidden" />
 
         {/* Analysis Status Indicator */}
-        {isAnalyzing && (
+        {isAnalyzing && hasVideo && (
           <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-500/90 backdrop-blur-sm rounded-lg px-3 py-2">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
             <span className="text-white text-sm font-medium">Analyzing</span>
           </div>
         )}
+
+        {/* No Video Placeholder */}
+        {!hasVideo && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white/60">
+              <div className="text-6xl mb-4">📹</div>
+              <p className="text-lg">Select a carriage to view video</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls */}
-      <div className="flex flex-wrap gap-3">
-        {/* Video Upload */}
-        <label className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer">
-          Upload Video
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-        </label>
-
-        {/* Webcam Toggle */}
-        {!useWebcam ? (
+      {hasVideo && (
+        <div className="flex flex-wrap gap-3">
+          {/* Analysis Toggle */}
           <button
-            onClick={startWebcam}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+            onClick={() => setIsAnalyzing(!isAnalyzing)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              isAnalyzing
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
           >
-            Start Webcam
+            {isAnalyzing ? 'Stop Analysis' : 'Start Analysis'}
           </button>
-        ) : (
+
+          {/* Manual Analysis */}
           <button
-            onClick={stopWebcam}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+            onClick={analyzeCurrentFrame}
+            disabled={isAnalyzing}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Stop Webcam
+            Analyze Now
           </button>
-        )}
-
-        {/* Analysis Toggle */}
-        <button
-          onClick={() => setIsAnalyzing(!isAnalyzing)}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            isAnalyzing
-              ? 'bg-red-600 text-white hover:bg-red-700'
-              : 'bg-slate-600 text-white hover:bg-slate-700'
-          }`}
-        >
-          {isAnalyzing ? 'Stop Analysis' : 'Start Analysis'}
-        </button>
-
-        {/* Manual Analysis */}
-        <button
-          onClick={analyzeCurrentFrame}
-          disabled={isAnalyzing}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Analyze Now
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

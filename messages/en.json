@@ -1,16 +1,4 @@
 {
-  "home": {
-    "title": "CrowdCompass",
-    "subtitle": "Real-time Train Congestion Monitoring",
-    "description": "AI-powered passenger capacity tracking using LLM technology",
-    "carriageStatus": "Carriage Status",
-    "carriageStatusDesc": "View current congestion status and capacity for boarding passengers",
-    "carriageStatusLabel": "Platform Display Screen",
-    "liveFeed": "Live Feed",
-    "liveFeedDesc": "Monitor real-time video stream from inside the carriage",
-    "liveFeedLabel": "Monitoring Dashboard",
-    "poweredBy": "Powered by Llama LLM for intelligent crowd analysis"
-  },
   "status": {
     "title": "Carriage Status",
     "subtitle": "Real-time congestion monitoring",
@@ -26,22 +14,5 @@
     "fewPeople": "Few People",
     "moderate": "Moderate",
     "full": "Full"
-  },
-  "liveFeed": {
-    "title": "Live Carriage Feed",
-    "carriage": "Carriage",
-    "live": "LIVE",
-    "cameraFeed": "Camera Feed",
-    "videoPlaceholder": "Video stream placeholder",
-    "currentStatus": "Current Status",
-    "capacity": "Capacity",
-    "statistics": "Statistics",
-    "peakTime": "Peak Time",
-    "averageToday": "Average Today",
-    "passengers": "Passengers",
-    "legend": "Legend",
-    "pause": "Pause",
-    "snapshot": "Snapshot",
-    "quality": "Quality"
   }
 }

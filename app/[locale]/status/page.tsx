@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import VideoAnalyzer from '@/components/VideoAnalyzer';
@@ -40,28 +40,55 @@ const statusConfig = {
   },
 };
 
+// Video file mapping for each carriage
+const CARRIAGE_VIDEOS: Record<number, string> = {
+  1: '/train-videos/1/video_60.mp4',
+  2: '/train-videos/2/video_100.mp4',
+  3: '/train-videos/3/video_120.mp4',
+  4: '/train-videos/4/video_150.mp4',
+  5: '/train-videos/5/video_40.mp4',
+};
+
 export default function CarriageStatusScreen() {
   const t = useTranslations('status');
 
   const [currentCarriage, setCurrentCarriage] = useState<number>(3);
+  const currentCarriageRef = useRef<number>(3);
+  const [videoUrl, setVideoUrl] = useState<string>(CARRIAGE_VIDEOS[3]);
   const [allCarriages, setAllCarriages] = useState<CarriageData[]>([
-    { carriageNumber: 1, status: 'few people', capacity: 45 },
-    { carriageNumber: 2, status: 'moderate', capacity: 75 },
-    { carriageNumber: 3, status: 'moderate', capacity: 85 },
-    { carriageNumber: 4, status: 'full', capacity: 95 },
-    { carriageNumber: 5, status: 'empty', capacity: 30 },
+    { carriageNumber: 1, status: 'moderate', capacity: 60 },
+    { carriageNumber: 2, status: 'full', capacity: 80 },
+    { carriageNumber: 3, status: 'moderate', capacity: 60 },
+    { carriageNumber: 4, status: 'full', capacity: 120 },
+    { carriageNumber: 5, status: 'few people', capacity: 30 },
   ]);
 
-  // Handle real-time analysis results from video
-  const handleAnalysis = (result: { status: CongestionStatus; capacity: number }) => {
-    setAllCarriages(prev =>
-      prev.map(carriage =>
-        carriage.carriageNumber === currentCarriage
-          ? { ...carriage, status: result.status, capacity: result.capacity }
-          : carriage
-      )
-    );
+  // Handle carriage selection
+  const handleCarriageClick = (carriageNumber: number) => {
+    console.log(`[Status Page] Selected carriage ${carriageNumber}, loading video: ${CARRIAGE_VIDEOS[carriageNumber]}`);
+    currentCarriageRef.current = carriageNumber;
+    setCurrentCarriage(carriageNumber);
+    setVideoUrl(CARRIAGE_VIDEOS[carriageNumber]);
   };
+
+  // Handle real-time analysis results from video
+  // Use ref to always get the latest carriage number
+  const handleAnalysis = useCallback((result: { status: CongestionStatus; capacity: number }) => {
+    const targetCarriage = currentCarriageRef.current;
+    console.log(`[Status Page] *** Received analysis result for carriage ${targetCarriage}:`, result);
+
+    setAllCarriages(prev => {
+      const updated = prev.map(carriage => {
+        if (carriage.carriageNumber === targetCarriage) {
+          console.log(`[Status Page] *** Updating carriage ${targetCarriage} from capacity ${carriage.capacity} to ${result.capacity}, status from ${carriage.status} to ${result.status}`);
+          return { ...carriage, status: result.status, capacity: result.capacity };
+        }
+        return carriage;
+      });
+      console.log('[Status Page] *** New carriages state:', updated);
+      return updated;
+    });
+  }, []);
 
   const currentCarriageData = allCarriages.find(c => c.carriageNumber === currentCarriage);
   const config = currentCarriageData ? statusConfig[currentCarriageData.status] : statusConfig.moderate;
@@ -117,7 +144,7 @@ export default function CarriageStatusScreen() {
           {/* Carriage Display Section */}
           <div className="px-8 py-12">
             {/* Carriage Number Labels */}
-            <div className="flex items-end justify-center gap-3 mb-6">
+            <div className="flex items-center justify-center gap-3 mb-6">
               {allCarriages.map((carriage) => {
                 const isCurrentCarriage = carriage.carriageNumber === currentCarriage;
                 const carriageConfig = statusConfig[carriage.status];
@@ -125,19 +152,19 @@ export default function CarriageStatusScreen() {
                 return (
                   <div
                     key={carriage.carriageNumber}
-                    className={`flex flex-col items-center transition-all duration-300 ${
-                      isCurrentCarriage ? 'scale-110' : ''
-                    }`}
+                    onClick={() => handleCarriageClick(carriage.carriageNumber)}
+                    className="flex flex-col items-center cursor-pointer"
+                    style={{ minHeight: '160px' }}
                   >
                     {/* Carriage Box */}
                     <div
                       className={`
-                        ${isCurrentCarriage ? 'w-24 h-32' : 'w-16 h-20'}
+                        ${isCurrentCarriage ? 'w-24 h-32' : 'w-20 h-28'}
                         ${carriageConfig.bgLight}
                         ${isCurrentCarriage ? `border-4 ${carriageConfig.border}` : 'border-2 border-slate-300'}
                         rounded-2xl
                         flex flex-col items-center justify-center
-                        transition-all duration-300
+                        transition-all duration-200
                         relative
                         overflow-hidden
                       `}
@@ -265,13 +292,14 @@ export default function CarriageStatusScreen() {
                 Live Video Analysis
               </h2>
               <p className="text-slate-600">
-                Upload a video or use your webcam to analyze carriage {currentCarriage} in real-time
+                Analyzing carriage {currentCarriage} in real-time
               </p>
             </div>
             <VideoAnalyzer
               onAnalysis={handleAnalysis}
+              videoUrl={videoUrl}
               intervalMs={5000}
-              autoStart={false}
+              autoStart={true}
             />
           </div>
         </div>
