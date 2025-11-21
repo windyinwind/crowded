@@ -13,6 +13,7 @@ export class BedrockProvider extends BaseAIProvider {
   private provider: ReturnType<typeof createAmazonBedrock>;
 
   constructor(model: string = 'us.meta.llama3-2-11b-instruct-v1:0') {
+    model = process.env.AWS_BEDROCK_AI_MODEL || model;
     super({
       name: 'AWS Bedrock',
       model,

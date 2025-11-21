@@ -5,13 +5,14 @@
  * falls back to alternative providers if the primary provider fails.
  *
  * Configuration:
- * - Set AI_PROVIDER in .env.local to choose primary provider ('sambanova' or 'bedrock')
- * - If primary fails, automatically tries other configured providers
- * - Requires appropriate API keys/credentials for each provider
+ * - AI_PROVIDER: Primary provider to use first (default: 'bedrock')
+ * - AI_FALLBACK_PROVIDER: Specific fallback if primary fails (default: 'sambanova')
+ * - All other configured providers will be used as additional fallbacks
  *
  * Providers are tried in order:
- * 1. Primary provider (specified by AI_PROVIDER)
- * 2. All other configured providers (as fallback)
+ * 1. Primary provider (AI_PROVIDER)
+ * 2. Fallback provider (AI_FALLBACK_PROVIDER)
+ * 3. Any other configured providers
  */
 
 import { BaseAIProvider, AnalysisResult, CongestionStatus } from './providers/base';
@@ -34,14 +35,22 @@ const PROVIDER_REGISTRY: Record<string, () => BaseAIProvider> = {
  * Get primary provider name from environment
  */
 function getPrimaryProvider(): string {
-  return process.env.AI_PROVIDER || 'sambanova';
+  return process.env.AI_PROVIDER || 'bedrock';
 }
 
 /**
- * Initialize all available providers
+ * Get fallback provider name from environment
+ */
+function getFallbackProvider(): string | null {
+  return process.env.AI_FALLBACK_PROVIDER || null;
+}
+
+/**
+ * Initialize all available providers in priority order
  */
 function initializeProviders(): BaseAIProvider[] {
   const primaryName = getPrimaryProvider();
+  const fallbackName = getFallbackProvider();
   const providers: BaseAIProvider[] = [];
 
   // Add primary provider first
@@ -49,19 +58,32 @@ function initializeProviders(): BaseAIProvider[] {
     const provider = PROVIDER_REGISTRY[primaryName]();
     if (provider.isConfigured() && provider.isEnabled()) {
       providers.push(provider);
-      console.log(`[Analyzer] Primary provider: ${provider.getName()}`);
+      console.log(`[Analyzer] ✓ Primary provider: ${provider.getName()}`);
     } else {
-      console.warn(`[Analyzer] Primary provider ${primaryName} not configured or disabled`);
+      console.warn(`[Analyzer] ⚠ Primary provider ${primaryName} not configured or disabled`);
+    }
+  } else {
+    console.warn(`[Analyzer] ⚠ Primary provider ${primaryName} not found in registry`);
+  }
+
+  // Add explicit fallback provider if specified
+  if (fallbackName && fallbackName !== primaryName && PROVIDER_REGISTRY[fallbackName]) {
+    const provider = PROVIDER_REGISTRY[fallbackName]();
+    if (provider.isConfigured() && provider.isEnabled()) {
+      providers.push(provider);
+      console.log(`[Analyzer] ✓ Fallback provider: ${provider.getName()}`);
+    } else {
+      console.warn(`[Analyzer] ⚠ Fallback provider ${fallbackName} not configured or disabled`);
     }
   }
 
-  // Add fallback providers
+  // Add any other configured providers as additional fallbacks
   for (const [name, factory] of Object.entries(PROVIDER_REGISTRY)) {
-    if (name !== primaryName) {
+    if (name !== primaryName && name !== fallbackName) {
       const provider = factory();
       if (provider.isConfigured() && provider.isEnabled()) {
         providers.push(provider);
-        console.log(`[Analyzer] Fallback provider available: ${provider.getName()}`);
+        console.log(`[Analyzer] ✓ Additional fallback: ${provider.getName()}`);
       }
     }
   }
@@ -70,6 +92,7 @@ function initializeProviders(): BaseAIProvider[] {
     throw new Error('No AI providers configured. Please set up at least one provider in .env.local');
   }
 
+  console.log(`[Analyzer] Total providers available: ${providers.length}`);
   return providers;
 }
 
@@ -133,6 +156,7 @@ export async function analyzeCarriageImage(imageUrl: string): Promise<AnalysisRe
 export function getProviderInfo() {
   return {
     primary: getPrimaryProvider(),
+    fallback: getFallbackProvider(),
     available: providers.map(p => ({
       name: p.getName(),
       model: p.getModel(),

@@ -5,6 +5,7 @@
  * Supports multiple API keys to avoid rate limits by rotating between them.
  *
  * Environment variables:
+ * - SAMBANOVA_AI_MODEL (optional, default: Llama-4-Maverick-17B-128E-Instruct)
  * - SAMBANOVA_API_KEY (required)
  * - SAMBANOVA_API_KEY_2 (optional)
  * - Add more keys as SAMBANOVA_API_KEY_3, etc.
@@ -20,6 +21,7 @@ export class SambaNovaProvider extends BaseAIProvider {
   private providers: Array<ReturnType<typeof createSambaNova>>;
 
   constructor(model: string = 'Llama-4-Maverick-17B-128E-Instruct') {
+    model = process.env.SAMBANOVA_AI_MODEL || model;
     super({
       name: 'SambaNova',
       model,
