@@ -1,0 +1,47 @@
+{
+  "home": {
+    "title": "クラウドコンパス",
+    "subtitle": "リアルタイム列車混雑状況モニタリング",
+    "description": "LLM技術を使用したAI搭載乗客容量追跡",
+    "carriageStatus": "車両状況",
+    "carriageStatusDesc": "乗車乗客の現在の混雑状況と容量を表示",
+    "carriageStatusLabel": "プラットフォーム表示画面",
+    "liveFeed": "ライブフィード",
+    "liveFeedDesc": "車内からのリアルタイムビデオストリームを監視",
+    "liveFeedLabel": "モニタリングダッシュボード",
+    "poweredBy": "Llama LLMによるインテリジェント混雑分析"
+  },
+  "status": {
+    "title": "車両状況",
+    "subtitle": "リアルタイム混雑モニタリング",
+    "carriage": "号車",
+    "car": "号車",
+    "status": "状況",
+    "currentCapacity": "現在の容量",
+    "nextTrain": "次の列車は{minutes}分後に到着",
+    "trainInfo": "列車情報",
+    "destination": "行き先",
+    "selectCarriage": "空いている車両をお選びください",
+    "empty": "空いています",
+    "fewPeople": "少し混雑",
+    "moderate": "混雑",
+    "full": "満員"
+  },
+  "liveFeed": {
+    "title": "車両ライブフィード",
+    "carriage": "号車",
+    "live": "ライブ",
+    "cameraFeed": "カメラフィード",
+    "videoPlaceholder": "ビデオストリームプレースホルダー",
+    "currentStatus": "現在の状況",
+    "capacity": "容量",
+    "statistics": "統計",
+    "peakTime": "ピーク時間",
+    "averageToday": "今日の平均",
+    "passengers": "乗客",
+    "legend": "凡例",
+    "pause": "一時停止",
+    "snapshot": "スナップショット",
+    "quality": "品質"
+  }
+}

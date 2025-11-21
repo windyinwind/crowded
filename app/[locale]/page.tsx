@@ -1,19 +1,24 @@
-import Link from "next/link";
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
+  const t = useTranslations('home');
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-8">
+      <LanguageSwitcher />
       <main className="w-full max-w-4xl">
         <div className="bg-white rounded-3xl shadow-2xl p-12 space-y-8">
           <div className="text-center space-y-4">
             <h1 className="text-6xl font-bold text-slate-800">
-              CrowdCompass
+              {t('title')}
             </h1>
             <p className="text-2xl text-slate-600">
-              Real-time Train Congestion Monitoring
+              {t('subtitle')}
             </p>
             <p className="text-lg text-slate-500">
-              AI-powered passenger capacity tracking using LLM technology
+              {t('description')}
             </p>
           </div>
 
@@ -24,12 +29,12 @@ export default function Home() {
             >
               <div className="text-center space-y-4">
                 <div className="text-5xl">📊</div>
-                <h2 className="text-3xl font-bold">Carriage Status</h2>
+                <h2 className="text-3xl font-bold">{t('carriageStatus')}</h2>
                 <p className="text-blue-100">
-                  View current congestion status and capacity for boarding passengers
+                  {t('carriageStatusDesc')}
                 </p>
                 <div className="text-sm text-blue-100 opacity-75">
-                  → Platform Display Screen
+                  → {t('carriageStatusLabel')}
                 </div>
               </div>
             </Link>
@@ -40,19 +45,19 @@ export default function Home() {
             >
               <div className="text-center space-y-4">
                 <div className="text-5xl">📹</div>
-                <h2 className="text-3xl font-bold">Live Feed</h2>
+                <h2 className="text-3xl font-bold">{t('liveFeed')}</h2>
                 <p className="text-purple-100">
-                  Monitor real-time video stream from inside the carriage
+                  {t('liveFeedDesc')}
                 </p>
                 <div className="text-sm text-purple-100 opacity-75">
-                  → Monitoring Dashboard
+                  → {t('liveFeedLabel')}
                 </div>
               </div>
             </Link>
           </div>
 
           <div className="pt-8 text-center text-slate-500 text-sm">
-            <p>Powered by Llama LLM for intelligent crowd analysis</p>
+            <p>{t('poweredBy')}</p>
           </div>
         </div>
       </main>

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 type CongestionStatus = 'empty' | 'few people' | 'moderate' | 'full';
 
@@ -12,13 +14,15 @@ interface FeedData {
 }
 
 const statusConfig = {
-  empty: { label: 'Empty', color: 'bg-green-500', dotColor: 'bg-green-400' },
-  'few people': { label: 'Few People', color: 'bg-blue-500', dotColor: 'bg-blue-400' },
-  moderate: { label: 'Moderate', color: 'bg-yellow-500', dotColor: 'bg-yellow-400' },
-  full: { label: 'Full', color: 'bg-red-500', dotColor: 'bg-red-400' },
+  empty: { color: 'bg-green-500', dotColor: 'bg-green-400' },
+  'few people': { color: 'bg-blue-500', dotColor: 'bg-blue-400' },
+  moderate: { color: 'bg-yellow-500', dotColor: 'bg-yellow-400' },
+  full: { color: 'bg-red-500', dotColor: 'bg-red-400' },
 };
 
 export default function LiveFeedScreen() {
+  const t = useTranslations('liveFeed');
+
   // Mock data - in production, this would come from your backend
   const [feedData] = useState<FeedData>({
     carriageNumber: 4,
@@ -29,24 +33,35 @@ export default function LiveFeedScreen() {
 
   const config = statusConfig[feedData.status];
 
+  const getStatusLabel = (status: CongestionStatus) => {
+    const statusMap = {
+      empty: t('legend'),
+      'few people': t('legend'),
+      moderate: t('legend'),
+      full: t('legend'),
+    };
+    return statusMap[status];
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
+      <LanguageSwitcher />
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-slate-800">
-                Live Carriage Feed
+                {t('title')}
               </h1>
-              <p className="text-slate-600 mt-1">Carriage #{feedData.carriageNumber}</p>
+              <p className="text-slate-600 mt-1">{t('carriage')} #{feedData.carriageNumber}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="relative flex items-center">
                 <div className={`${config.dotColor} w-3 h-3 rounded-full animate-pulse`} />
                 <div className={`${config.dotColor} w-3 h-3 rounded-full absolute animate-ping`} />
               </div>
-              <span className="text-lg font-semibold text-slate-700">LIVE</span>
+              <span className="text-lg font-semibold text-slate-700">{t('live')}</span>
             </div>
           </div>
         </div>
@@ -62,10 +77,10 @@ export default function LiveFeedScreen() {
                 <div className="text-center space-y-4">
                   <div className="text-white/40 text-6xl">📹</div>
                   <div className="text-white/60 text-xl font-medium">
-                    Camera Feed
+                    {t('cameraFeed')}
                   </div>
                   <div className="text-white/40 text-sm">
-                    Video stream placeholder
+                    {t('videoPlaceholder')}
                   </div>
                 </div>
               </div>
@@ -73,7 +88,7 @@ export default function LiveFeedScreen() {
               {/* Overlay Info */}
               <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
                 <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
-                  <div className="text-sm opacity-75">Carriage</div>
+                  <div className="text-sm opacity-75">{t('carriage')}</div>
                   <div className="text-3xl font-bold">#{feedData.carriageNumber}</div>
                 </div>
                 <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white text-sm">
@@ -87,14 +102,14 @@ export default function LiveFeedScreen() {
               <div className="flex items-center justify-between">
                 <div className="flex gap-3">
                   <button className="px-6 py-3 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors">
-                    Pause
+                    {t('pause')}
                   </button>
                   <button className="px-6 py-3 bg-slate-200 text-slate-800 rounded-lg font-medium hover:bg-slate-300 transition-colors">
-                    Snapshot
+                    {t('snapshot')}
                   </button>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
-                  <span className="text-sm font-medium">Quality:</span>
+                  <span className="text-sm font-medium">{t('quality')}:</span>
                   <select className="px-3 py-2 border border-slate-300 rounded-lg text-sm">
                     <option>1080p</option>
                     <option>720p</option>
@@ -109,20 +124,20 @@ export default function LiveFeedScreen() {
           <div className="space-y-4">
             {/* Current Status Card */}
             <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4">
-              <h2 className="text-2xl font-bold text-slate-800">Current Status</h2>
+              <h2 className="text-2xl font-bold text-slate-800">{t('currentStatus')}</h2>
 
               {/* Status Badge */}
               <div className={`${config.color} text-white rounded-xl p-4 text-center`}>
                 <div className="text-sm font-semibold uppercase tracking-wider opacity-90">
-                  Status
+                  {t('currentStatus')}
                 </div>
-                <div className="text-3xl font-bold mt-1">{config.label}</div>
+                <div className="text-3xl font-bold mt-1">{feedData.status}</div>
               </div>
 
               {/* Capacity */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-slate-600 font-medium">Capacity</span>
+                  <span className="text-slate-600 font-medium">{t('capacity')}</span>
                   <span className="text-2xl font-bold text-slate-800">
                     {feedData.capacity}%
                   </span>
@@ -138,35 +153,21 @@ export default function LiveFeedScreen() {
 
             {/* Statistics Card */}
             <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4">
-              <h2 className="text-xl font-bold text-slate-800">Statistics</h2>
+              <h2 className="text-xl font-bold text-slate-800">{t('statistics')}</h2>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600">Peak Time</span>
+                  <span className="text-slate-600">{t('peakTime')}</span>
                   <span className="font-semibold text-slate-800">8:00 AM</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600">Average Today</span>
+                  <span className="text-slate-600">{t('averageToday')}</span>
                   <span className="font-semibold text-slate-800">67%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600">Passengers</span>
+                  <span className="text-slate-600">{t('passengers')}</span>
                   <span className="font-semibold text-slate-800">~42</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Status Legend */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 space-y-3">
-              <h2 className="text-xl font-bold text-slate-800">Legend</h2>
-
-              <div className="space-y-2">
-                {Object.entries(statusConfig).map(([key, value]) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <div className={`w-8 h-8 ${value.color} rounded-lg`} />
-                    <span className="text-slate-700 font-medium">{value.label}</span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
